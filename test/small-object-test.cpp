@@ -533,11 +533,14 @@ TEST_F(small_object_test, reserve_big_into_small) {
     a.push_back(i + 100);
   }
 
+  element::reset_counters();
   container b = a;
   a.reserve(3);
 
   ASSERT_EQ(2, a.size());
+  EXPECT_EQ(2, element::get_copy_counter());
   expect_static_storage(a);
+
   ASSERT_EQ(2, b.size());
   ASSERT_EQ(5, b.capacity());
 
@@ -747,6 +750,19 @@ TEST_F(small_object_test, swap_two_small) {
   EXPECT_EQ(1, a[0]);
   EXPECT_EQ(2, a[1]);
   EXPECT_EQ(3, b[0]);
+}
+
+TEST_F(small_object_test, self_swap_small) {
+  container a;
+  a.push_back(1);
+  a.push_back(2);
+  a.push_back(3);
+
+  immutable_guard g(a);
+  element::reset_counters();
+  a.swap(a);
+  EXPECT_EQ(0, element::get_copy_counter());
+  EXPECT_EQ(0, element::get_swap_counter());
 }
 
 TEST_F(small_object_test, swap_two_small_throw) {
